@@ -9,21 +9,20 @@ import { NextPageWithLayout } from "./_app";
 const inter = Inter({ subsets: ["latin"] });
 
 // Per-Page Layouts
-const Home: NextPageWithLayout = () => {
+const Home: NextPageWithLayout = ({ data }) => {
   return (
     <main
       className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
     >
-      {[...Array(10)].map((item, index) => (
-        <ul key={index}>
+      {data.map((item) => (
+        <ul key={item.userId}>
           <li>
             <Link
               href={{
-                pathname: "blog/1",
-                query: { post: index + 1 },
+                pathname: `blog/${item.id}`,
               }}
             >
-              Post {index + 1}
+              {item.title}
             </Link>
           </li>
         </ul>
@@ -41,3 +40,11 @@ Home.getLayout = function getLayout(page: ReactElement) {
 };
 
 export default Home;
+
+export async function getServerSideProps() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts");
+  const data: { userId: string; id: string; body: string; title: string }[] =
+    await res.json();
+
+  return { props: { data } };
+}
