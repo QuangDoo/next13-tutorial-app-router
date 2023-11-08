@@ -1,31 +1,52 @@
 import { Inter } from "next/font/google";
-import Link from "next/link";
 // import Layout from "~/components/Layout";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { ReactElement } from "react";
+import Country from "~/components/country";
 import Layout from "~/components/layout";
 import NestedLayout from "~/components/nested-layout";
-import { NextPageWithLayout } from "./_app";
 
 const inter = Inter({ subsets: ["latin"] });
 
+type Name = {
+  common: string;
+  official: string;
+};
+
+export type CountryTypeData = {
+  name: Name & {
+    nativeName: {
+      [key: string]: Name;
+    };
+  };
+  languages: {
+    [key: string]: string;
+  };
+  capital: string[];
+  latlng: [number, number];
+  flags: {
+    png: string;
+    svg: string;
+    alt: string;
+  };
+  currencies: {
+    [key: string]: {
+      name: string;
+      symbol: string;
+    };
+  };
+};
+
 // Per-Page Layouts
-const Home: NextPageWithLayout = ({ data }) => {
+const Home = ({
+  countries,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
+      className={`flex min-h-screen flex-wrap items-center justify-center p-24 space-x-2 space-y-2 ${inter.className}`}
     >
-      {data.map((item) => (
-        <ul key={item.userId}>
-          <li>
-            <Link
-              href={{
-                pathname: `blog/${item.id}`,
-              }}
-            >
-              {item.title}
-            </Link>
-          </li>
-        </ul>
+      {countries.map((countries) => (
+        <Country key={countries.name.official} {...countries} />
       ))}
     </main>
   );
@@ -41,10 +62,13 @@ Home.getLayout = function getLayout(page: ReactElement) {
 
 export default Home;
 
-export async function getServerSideProps() {
-  const res = await fetch("https://jsonplaceholder.typicode.com/posts");
-  const data: { userId: string; id: string; body: string; title: string }[] =
-    await res.json();
+export const getServerSideProps = (async () => {
+  const res = await fetch("https://restcountries.com/v3.1/all");
+  // await fetch("/api/cookies");
 
-  return { props: { data } };
-}
+  const data: CountryTypeData[] = await res.json();
+
+  return { props: { countries: data } };
+}) satisfies GetServerSideProps<{
+  countries: CountryTypeData[];
+}>;
