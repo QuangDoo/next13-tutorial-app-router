@@ -3,6 +3,6 @@ describe("My First Test", () => {
     expect(true).to.equal(true);
     cy.visit("http://localhost:3000");
 
-    cy.contains("b");
+    cy.contains("a");
   });
 });
